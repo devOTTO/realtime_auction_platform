@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="Korean">
+<head>
+   <% include ./head.ejs %>
+</head>
+
+<body>
+
+<div class="super_container">
+
+	<!-- Header -->
+	<% include ./header.ejs %>
+
+	<!-- Single Product -->
+
+	<div class="single_product">
+		<div class="container">
+			<div class="row">
+
+				<!-- Images -->
+				<div class="col-lg-2 order-lg-1 order-2">
+					<ul class="image_list">
+						<% items.forEach(function(image){ %>
+								<li data-image="img/<%= item.img %>"><img src="img/<%= item.img %>" alt=""></li>
+							 <% }) %>
+					</ul>
+				</div>
+
+				<!-- Selected Image -->
+				<div class="col-lg-5 order-lg-2 order-1">
+					<% if (item.bid_state == 2) { %>
+						<div class="image_selected"><img src="images/soldout.png" alt=""></div>
+					<% }else { %>
+							<div class="image_selected"><img src="images/<%= selectedimage %>" alt=""></div>
+						<% } %>
+				</div>
+
+				<!-- Description -->
+				<div class="col-lg-5 order-3">
+					<div class="product_description">
+						<div class="product_category"><%= itemcategory.cat_name %></div>
+						<div class="product_name"><%= item.item_name %></div>
+						<div class="product_text">아이템 설명: <%= item.item_content %></p></div>
+						<div class="product_text">경매 시작: <%= item.item_start_time %></p></div>
+						<div class="product_text">입찰 방식:
+							<% if (item.bid_type == 0) { %>
+    					 최고가 입찰</p>
+							<% } else { %>
+    					차가 입찰</p>
+							<% } %>
+						</div>
+						<div class="product_text">경매 방식:
+							<% if (item.bid_type == 0) { %>
+    					 오직 한번만 입찰 가능(신중히 입찰하세요!)</p>
+							<% } else { %>
+    					여러번 입찰 가능</p>
+							<% } %>
+						</div>
+						<div class="product_text">아이템 상태:
+							<% if (item.item_cond == 0) { %>
+    					새상품(박스, 부속품, 등등 모두 포함)</p>
+							<% } else if (item.item_cond == 1) { %>
+    					새상품(박스, 부속품, 등등 모두 미포함)</p>
+							<% } else if (item.item_cond == 2) { %>
+    					사용감존재(GOOD)</p>
+							<% }else { %>
+    					사용감존재(acceptable)</p>
+						<% } %>
+						</div>
+						<!-- <div class="product_text">아이템 상태:
+							<% if(session.user_info && item.user_id == session.user_info.user_id) { %>
+    					새상품(박스, 부속품, 등등 모두 포함)</p>
+							<% }else { %>
+    					사용감존재(acceptable)</p>
+						<% } %> -->
+						</div>
+						<div class="order_info d-flex flex-row">
+							<form action="/do_bidding_agent?item_id=<%= item.item_id %>" method = "post" >
+								<p><div class="product_price">Start price: <%= item.item_start_price %></div></p>
+								<% if (item.bid_type == 1) { %>
+									<% if (!currentmoney) { %>
+										<p><div class="product_price">Current price: <%= item.item_start_price %></div></p>
+									<% } else{ %>
+										<p><div class="product_price">Current price: <%= currentmoney.bidding_price %></div></p>
+									<% }%>
+								<% } %>
+								<div class="button_container">
+									<% if(item.bid_state == 2) { %>
+										<% if(session.user_info && item.user_id == session.user_info.user_id) { %>
+												<button onclick ='btn_click()' type="button" class="button cart_button">낙찰가: <%= winnermoney.bidding_price %> </button>
+										<% }%>
+											<button onclick ="location.href='/ %>'" type="button" class="button cart_button">SoldOut</button>
+									<% } else{%>
+									<% if(session.user_info) { %>
+											<% if(item.user_id != session.user_info.user_id) { %>
+												<% if(done) { %>
+													<p><button  onclick ="location.href='/cart?user_id=<%= session.user_info.user_id %>'" type="button" class="button cart_button">이미 참여한 경매</button></p>
+													<% } else { %>
+														<p><button  onclick ="location.href='/do_bidding_agent?item_id=<%= item.item_id %>'" type="submit" class="button cart_button">입찰참여하기</button></p>
+														<div  onclick ="location.href='/wishlist?item_id=<%= item.item_id %>'"class="product_fav"><i class="fas fa-heart"></i></div>
+														<% } %>
+									<% } else { %>
+											<button onclick ="location.href='/delete?item_id=<%= item.item_id %>'" type="button" class="button cart_button">Delete</button>
+											<% } %>
+										<% } else { %>
+											<!-- //로그인된 유저가 아니면 로그인페이지로 이동 -->
+											<button onclick ="location.href='/signin'" type="button" class="button cart_button">Please Login</button>
+											<% } %>
+									<% } %>
+								</div>
+							</form>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<!-- Brands -->
+
+	<div class="brands">
+		<div class="container">
+			<div class="row">
+				<div class="col">
+					<div class="brands_slider_container">
+
+						<!-- Brands Slider -->
+
+						<div class="owl-carousel owl-theme brands_slider">
+
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_1.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_2.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_3.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_4.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_5.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_6.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_7.jpg" alt=""></div></div>
+							<div class="owl-item"><div class="brands_item d-flex flex-column justify-content-center"><img src="images/brands_8.jpg" alt=""></div></div>
+
+						</div>
+
+						<!-- Brands Slider Navigation -->
+						<div class="brands_nav brands_prev"><i class="fas fa-chevron-left"></i></div>
+						<div class="brands_nav brands_next"><i class="fas fa-chevron-right"></i></div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Footer -->
+	<% include ./footer.ejs %>
+	<!-- Copyright -->
+
+</div>
+
+<script src="js/jquery-3.3.1.min.js"></script>
+<script src="styles/bootstrap4/popper.js"></script>
+<script src="styles/bootstrap4/bootstrap.min.js"></script>
+<script src="plugins/greensock/TweenMax.min.js"></script>
+<script src="plugins/greensock/TimelineMax.min.js"></script>
+<script src="plugins/scrollmagic/ScrollMagic.min.js"></script>
+<script src="plugins/greensock/animation.gsap.min.js"></script>
+<script src="plugins/greensock/ScrollToPlugin.min.js"></script>
+<script src="plugins/OwlCarousel2-2.2.1/owl.carousel.js"></script>
+<script src="plugins/easing/easing.js"></script>
+<script src="js/product_custom.js"></script>
+</body>
+
+</html>
