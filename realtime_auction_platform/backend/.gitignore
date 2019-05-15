@@ -90,4 +90,4 @@ typings/
 *.DS_Store
 
 #upload
-*/uploads
+uploads/
