@@ -44,4 +44,47 @@ router.get('/join', isNotLogin, (req, res) => {
   });
 });
 
+//GET /item
+router.get('/item', isLogin, (req, res) => {
+  res.render('item', { title: 'NBay_상품등록' });
+});
+
+fs.readdir('uploads', (error) => {
+  if (error) {
+    console.error('uploads 폴더 생성');
+    fs.mkdirSync('uploads');
+  }
+});
+const upload = multer({
+  storage: multer.diskStorage({
+    destination(req, file, cb) {
+      cb(null, 'uploads/');
+    },
+    filename(req, file, cb) {
+      const ext = path.extname(file.originalname);
+      cb(null, path.basename(file.originalname, ext) + new Date().valueOf() + ext);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+//POST /item --물품 등록
+router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
+  try {
+    const { name, price, des, finish } = req.body;
+    const item = await Item.create({
+      sellerId: req.user.id,
+      name,
+      des,
+      finish,
+      img: req.file.filename,
+      price,
+    });
+    res.redirect('/');
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 module.exports = router;
