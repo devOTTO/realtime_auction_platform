@@ -88,3 +88,6 @@ typings/
 
 # MAC
 *.DS_Store
+
+#upload
+*/uploads
