@@ -20,7 +20,7 @@
 
 				 <div class="shop_content">
 					<div class="shop_bar clearfix">
-						<div class="shop_product_count"><span>몇개</span> products found</div>
+						<div class="shop_product_count"><span><%= items.length %></span> products found</div>
 						
 					</div>	
 						
@@ -28,17 +28,17 @@
 						<div class="product_grid_border"></div>
 						<div class="row">
                             <!-- Product Item -->
-                           
+                            <% items.forEach(function(item){ %>
 						<div class="product_item is_new">
 							
 							<div class="product_border"></div>
-							<div class="product_image d-flex flex-column align-items-center justify-content-center"><a href="/item/"></a> <img src="/img/" alt=""></div>
+							<div class="product_image d-flex flex-column align-items-center justify-content-center"><a href="/item/<%= item.id %>"></a> <img src="/img/<%= item.img %>" alt=""></div>
 							<div class="product_content">
-								<div class="product_price"> 1000원</div>
-                                <div class="product_name"><a href="/item/" tabindex="0">이름</a></div>
+								<div class="product_price"><%= item.price %>원</div>
+                                <div class="product_name"><a href="/item/<%= item.id %>" tabindex="0"><%= item.name %></a></div>
 							</div>
 						</div>
-                       
+                        <% });  %>
 					</div>
 					</div>
 				</div>

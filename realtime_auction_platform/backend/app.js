@@ -8,8 +8,13 @@ const passport = require('passport');
 require('dotenv').config(); 
 
 const indexRouter = require('./routes/index');
+const authRouter = require('./routes/auth');
+const { sequelize } = require('./models');
+const passportConfig = require('./passport');
 
 const app = express();
+sequelize.sync();
+passportConfig(passport);
 
 const sessionMiddleware = session({
   resave: false,
@@ -34,8 +39,12 @@ app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(sessionMiddleware);
 app.use(flash());
 
-app.use('/', indexRouter);
+//passport middlewares
+app.use(passport.initialize()); 
+app.use(passport.session());
 
+app.use('/', indexRouter);
+app.use('/auth', authRouter);
 
 app.use((req, res, next) => {
   const err = new Error('Not Found');

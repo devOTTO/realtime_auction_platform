@@ -1,37 +1,28 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
 const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
+
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const config = require('../config/config')[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
-
-fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
-  })
-  .forEach(file => {
-    const model = sequelize['import'](path.join(__dirname, file));
-    db[model.name] = model;
-  });
-
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+const sequelize = new Sequelize(
+  config.database, config.username, config.password, config,
+);
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+db.User = require('./user')(sequelize, Sequelize);
+db.Item = require('./item')(sequelize, Sequelize);
+db.Auction = require('./auction')(sequelize, Sequelize);
+
+db.Item.belongsTo(db.User, { as: 'seller' }); //판매자
+db.Item.belongsTo(db.User, { as: 'buyer' }); //구매자
+
+db.Auction.belongsTo(db.User);
+db.Auction.belongsTo(db.Item);
+
+db.User.hasMany(db.Auction);
+db.Item.hasMany(db.Auction);
+
 
 module.exports = db;
