@@ -1,6 +1,6 @@
 const { Item, Auction, User, sequelize } = require('./models');
 
-module.exports = async () => {
+(async () => {
   try {
     const targets = await Item.findAll({
       where:{
@@ -16,15 +16,24 @@ module.exports = async () => {
           where: { itemId: target.id },
           order: [['bid', 'DESC']],
         });
+        try{
         await Item.update({ buyerId: success.userId }, { where: { id: target.id } });
         await User.update({
           money: sequelize.literal(`money - ${success.bid}`),
         }, {
           where: { id: success.userId },
         });
+        await User.update({
+          money: sequelize.literal(`money + ${success.bid}`), 
+        },{
+          where: { id: target.sellerId },
+        });
+        }catch (error) {
+          console.error(error);
+        }
       }
     });
   } catch (error) {
     console.error(error);
   }
-};
+})();

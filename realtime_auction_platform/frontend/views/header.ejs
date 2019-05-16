@@ -20,6 +20,7 @@
               <div><a href="/login">로그인</a></div>
               <% } else { %>
               <div><a href="/mypage"><%= user.name %></a></div>
+              <div>소지 금액 : <%= user.money %></div>
               <div><a href="/auth/logout">로그아웃</a></div>
               <% } %>
           </div>

@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => (
         money:{
             type : DataTypes.INTEGER,
             allowNull : false,
-            defaultValue: 0,
+            defaultValue: 1000000,
         }
     }, {
         timestamps: true,

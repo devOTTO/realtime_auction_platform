@@ -2,7 +2,6 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const scheduler = require('node-schedule');
 
 const { Item, Auction, User, sequelize } = require('../models');
 const { isLogin, isNotLogin } = require('./middlewares');
@@ -73,32 +72,13 @@ const upload = multer({
 router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
   try {
     const { name, price, des, finish } = req.body;
-    const item = await Item.create({
+    await Item.create({
       sellerId: req.user.id,
       name,
       des,
       finish,
       img: req.file.filename,
       price,
-    });
-
-    //--------------------문제의 코드부분------------------------//
-    console.log("종료시간"+finish);
-    const finishTime = new Date();
-    finishTime.setMinutes(finishTime.getMinutes()+finish);
-    console.log(finishTime);
-    scheduler.scheduleJob(finishTime, async() => {
-        console.log("scheduler finished");
-        const success = await Auction.find({
-            where: {itemId: item.id},
-            order: [['bid', 'DESC']],
-        });
-        await Item.update({ buyerId: success.userId}, {where: {id: item.id}});
-        await User.update({
-            money: sequelize.literal(`money - ${success.bid}`),
-        }, {
-            where: {id:success.userId},
-        });
     });
     res.redirect('/');
   } catch (error) {
@@ -109,7 +89,7 @@ router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
 
 //GET /item/:id --입찰 페이지
 router.get('/item/:id', async (req, res, next) => {
-    try {
+  try {
         const item = await Item.find({ where: { id: req.params.id },
           include: {
               model: User,
@@ -135,20 +115,30 @@ router.get('/item/:id', async (req, res, next) => {
 // //POST /item/:id/bid - 입찰 참여
 router.post('/item/:id/bid', isLogin, async (req, res, next) => {
   try {
+  
     const { bid } = req.body;
-        const item = await Item.find({ where: { id: req.params.id },
-          include: { model: Auction },
-          order: [[{ model:Auction}, 'bid', 'DESC']],
-         });
-         if(item.price > bid){
-              return res.status(403).send('판매가 보다 높게 입찰해야합니다.');
-           }
-          if(new Date(item.createdAt).valueOf() + (24*60*60*1000) < new Date()){
-              return res.status(403).send('종료된 경매입니다.');
-            }
-          if(item.auctions[0] && item.auctions[0].bid >= bid){
-               return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
-           }
+
+    const item = await Item.find({ where: { id: req.params.id },
+      include: { model: Auction },
+      order: [[{ model:Auction}, 'bid', 'DESC']],
+    });
+    //종료 경매 체크
+    if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
+      return res.status(403).send('종료된 경매입니다.');
+    }
+    //판매가 체크
+    if(item.price > bid){
+       return res.status(403).send('판매가 보다 높게 입찰해야합니다.');
+    }
+    //최고가 보다 높은지? 
+    if(item.auctions[0] && item.auctions[0].bid >= bid){
+      return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+    }
+    //자금 체크
+    if(req.user.money < bid)
+    {
+      return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+    }
     const result = await Auction.create({
       bid,
       userId: req.user.id,
@@ -159,36 +149,51 @@ router.post('/item/:id/bid', isLogin, async (req, res, next) => {
       name: req.user.name,
     });
     return res.send('ok');
+
+    // Test Code
+    // setTimeout(async() => {
+    //   const result = await Auction.create({
+    //     bid,
+    //     userId: req.user.id,
+    //     itemId: req.params.id,
+    //   });
+    //   req.app.get('io').to(req.params.id).emit('bid', {
+    //     bid: result.bid,
+    //     name: req.user.name,
+    //   });
+    //   return res.send('ok')}, 5000);
+    
+ 
   } catch (error) {
     console.error(error);
     return next(error);
   }
 });
 
-//mypage 수정중
-// router.get('/mypage',isLogin, async(req,res,next) => {
-//   try{
-//     const sellItems = await Item.findAll({
-//       where : {sellerId: req.user.id},
-//       include: {model:Auction},
-//       order: [[{model:Auction}, 'bid', 'DESC']],
-//     });
-//     const buyItems = await Item.findAll({
-//       where:{ buyerId: req.user.id},
-//       include:{model:Auction},
-//       order:[[{model:Auction}, 'bid', 'DESC']],
-//     });
-//     res.render('mypage', {
-//       title: `${req.user.name} My Page`,        
-//       sellItems,
-//       buyItems,
-//       mypageError: req.flash('mypageError'),
-//     });
+//GET /mypage
+router.get('/mypage',isLogin, async(req,res,next) => {
+  try{
+    const sellItems = await Item.findAll({
+      where : {sellerId: req.user.id},
+      include: {model:Auction},
+      order: [[{model:Auction}, 'bid', 'DESC']],
+    });
+    const buyItems = await Item.findAll({
+      where:{ buyerId: req.user.id},
+      include:{model:Auction},
+      order:[[{model:Auction}, 'bid', 'DESC']],
+    });
+    res.render('mypage', {
+      title: `${req.user.name} My Page`,        
+      sellItems,
+      buyItems,
+      mypageError: req.flash('mypageError'),
+    });
 
-//   }catch(error){
-//     console.log(error);
-//     next(error);
-//   }
-// });
+  }catch(error){
+    console.log(error);
+    next(error);
+  }
+});
 
 module.exports = router;

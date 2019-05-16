@@ -20,7 +20,7 @@ const app = express();
 // });
 sequelize.sync();
 passportConfig(passport);
-scheduleAuction();
+// scheduleAuction();
 
 const sessionMiddleware = session({
   resave: false,
