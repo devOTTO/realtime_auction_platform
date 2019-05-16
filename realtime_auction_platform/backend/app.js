@@ -11,10 +11,16 @@ const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const { sequelize } = require('./models');
 const passportConfig = require('./passport');
+const webSocket = require('./socket');
+const scheduleAuction = require('./scheduleAuction');
 
 const app = express();
+// sequelize.sync().then(function(){
+//   database:"process.env.DB_NAME"
+// });
 sequelize.sync();
 passportConfig(passport);
+scheduleAuction();
 
 const sessionMiddleware = session({
   resave: false,
@@ -61,3 +67,5 @@ app.use((err, req, res, next) => {
 const server = app.listen(app.get('port'), () => {
   console.log(app.get('port'), '번 포트에서 대기중');
 });
+
+webSocket(server, app);

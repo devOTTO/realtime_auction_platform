@@ -1,62 +1,62 @@
 <!-- Top Bar -->
 
-  <div class="top_bar">
-    <div class="container">
-      <div class="row">
-        <div class="col d-flex flex-row">
-          <div class="top_bar_contact_item"><div class="top_bar_icon"><img src="/images/mail.png" alt=""></div><a href="mailto:yoongotto@gmail.com">devOTTO</a></div>
-          <div class="top_bar_content ml-auto">
-            <div class="top_bar_menu">
-              <ul class="standard_dropdown top_bar_dropdown">
-                <li>
-                  <a href="#">Korean<i class="fas fa-chevron-down"></i></a>
-                </li>
-              </ul>
-            </div>
-            <div class="top_bar_user">
-              <div class="user_icon"><img src="/images/user.svg" alt=""></div>
-              <% if(!user) { %>
-                <div><a href="/join">회원가입</a></div>
-                <div><a href="/login">로그인</a></div>
-                <% } else { %>
-                <div><a href="mypage"><%= user.name %></a></div>
-                <div><a href="/auth/logout">로그아웃</a></div>
-                <% } %>
-            </div>
+<div class="top_bar">
+  <div class="container">
+    <div class="row">
+      <div class="col d-flex flex-row">
+        <div class="top_bar_contact_item"><div class="top_bar_icon"><img src="/images/mail.png" alt=""></div><a href="mailto:yoongotto@gmail.com">devOTTO</a></div>
+        <div class="top_bar_content ml-auto">
+          <div class="top_bar_menu">
+            <ul class="standard_dropdown top_bar_dropdown">
+              <li>
+                <a href="#">Korean<i class="fas fa-chevron-down"></i></a>
+              </li>
+            </ul>
+          </div>
+          <div class="top_bar_user">
+            <div class="user_icon"><img src="/images/user.svg" alt=""></div>
+            <% if(!user) { %>
+              <div><a href="/join">회원가입</a></div>
+              <div><a href="/login">로그인</a></div>
+              <% } else { %>
+              <div><a href="/mypage"><%= user.name %></a></div>
+              <div><a href="/auth/logout">로그아웃</a></div>
+              <% } %>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Header Main -->
+<!-- Header Main -->
 
-  <div class="header_main">
-    <div class="container">
-      <div class="row">
+<div class="header_main">
+  <div class="container">
+    <div class="row">
 
-        <!-- Logo -->
-        <div class="col-lg-2 col-sm-3 col-3 order-1">
-          <div class="logo_container">
-            <div class="logo"><a href="/">NBay</a></div>
-          </div>
+      <!-- Logo -->
+      <div class="col-lg-10 col-sm-9 col-9">
+        <div class="logo_container">
+          <div class="logo"><a href="/">NBay</a></div>
         </div>
-       
-            <!-- product_register -->
-            <div class="cart">
-              <div class="cart_container d-flex flex-row align-items-center justify-content-end">
-                <div class="cart_icon">
-                  <img src="/images/sellicon.png" alt="">
-                </div>
-                <div class="cart_content">
-                  <div class="cart_text"><a href="/item">Sell</a></div>
-                </div>
+      </div>
+    
+          <!-- product_register -->
+          <div class="col-lg-2 col-2 order-lg-3 text-lg-left text-right">
+            <div class="cart_container d-flex flex-row align-items-center justify-content-end">
+              <div class="cart_icon">
+                <img src="/images/sellicon.png" alt="">
+              </div>
+              <div class="cart_content">
+                <div class="cart_text"><a href="/item">Sell</a></div>
               </div>
             </div>
-
-
           </div>
+
+
         </div>
       </div>
     </div>
   </div>
+</div>
