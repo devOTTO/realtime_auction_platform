@@ -3,11 +3,13 @@ const { User } = require('../models');
 
 module.exports = (passport) => {
   passport.serializeUser((user, done) => {
-    done(null, user);
+    done(null, user.id);
   });
 
-  passport.deserializeUser((user, done) => {
-    done(null, user);
+  passport.deserializeUser((id, done) => {
+    User.find({ where: { id } })
+    .then(user => done(null, user))
+    .catch(err => done(err));
   });
 
   local(passport);

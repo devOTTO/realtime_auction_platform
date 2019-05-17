@@ -23,13 +23,25 @@
              <input type="file" class="form-control" name="img" placeholder="물품 사진" required>
            </div>
             <div class="form-group">
-              <label for="StartPrice">시작 가격(0원부터 가능합니다)</label>
-              <input type="number" class="form-control" name="price" placeholder="시작 가격" required min="0">
+              <label for="StartPrice">시작 가격(1원부터 가능합니다)</label>
+              <input type="number" class="form-control" name="price" placeholder="시작 가격" required min="1">
             </div>
             <div class="form-group">
               <label for="ItemDescrip">물품 설명</label>
               <input type="text" class="form-control" name="des" placeholder="물품 설명" required>
             </div>
+            <div class="form-group">
+                <label for="AuctionType">판매 종류</label>
+                <select name="type" class="selectpicker">
+                <option selected="selected" value="0">(0)일반 경매 </option>
+                <option value="1">(1)한정 수량 판매</option>
+                </select>
+              </div>
+            <div class="form-group">
+                <label for="ItemNum">물품 수량</label>
+                <input type="text" class="form-control" name="num" placeholder="물품 수량" default="1" min="1">
+              </div>
+
             <div class="form-group">
               <label for="Duration">판매 기간(분입력)</label>
               <input type="number" class="form-control" name="finish" placeholder="판매기간" required default="1" min="1">

@@ -11,6 +11,8 @@ const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
 const { sequelize } = require('./models');
 const passportConfig = require('./passport');
+const webSocket = require('./socket');
+const scheduleAuction = require('./scheduleAuction');
 
 const app = express();
 sequelize.sync();
@@ -26,12 +28,12 @@ const sessionMiddleware = session({
   },
 });
 //view engine setup
-app.set('views', path.join(__dirname, '../frontend/views'));
+app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'ejs');
 app.set('port', process.env.PORT || 3000);
 
 app.use(morgan('dev'));
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+app.use(express.static(path.join(__dirname, './public')));
 app.use('/img', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -61,3 +63,5 @@ app.use((err, req, res, next) => {
 const server = app.listen(app.get('port'), () => {
   console.log(app.get('port'), '번 포트에서 대기중');
 });
+
+webSocket(server, app);
