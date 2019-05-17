@@ -15,12 +15,8 @@ const webSocket = require('./socket');
 const scheduleAuction = require('./scheduleAuction');
 
 const app = express();
-// sequelize.sync().then(function(){
-//   database:"process.env.DB_NAME"
-// });
 sequelize.sync();
 passportConfig(passport);
-// scheduleAuction();
 
 const sessionMiddleware = session({
   resave: false,

@@ -124,6 +124,7 @@ router.get('/item/:id', async (req, res, next) => {
         next(error);
       }
   });
+
 const isValidate = function(item, bid,req){
    //종료 경매 체크
   if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
@@ -145,31 +146,31 @@ const isValidate = function(item, bid,req){
 } 
 // //POST /item/:id/bid - 입찰 참여
 router.post('/item/:id/bid', isLogin, async (req, res, next) => {
-  try {
-    const { bid } = req.body;
+    sequelize.transaction(async (t) => {
+      const { bid } = req.body;
 
-    const item = await Item.find({ where: { id: req.params.id },
-      include: { model: Auction },
-      order: [[{ model:Auction}, 'bid', 'DESC']],
-    });
-    
-    isValidate(item,bid,req);
-   
-    const result = await Auction.create({
-      bid,
-      userId: req.user.id,
-      itemId: req.params.id,
-    });
-    req.app.get('io').to(req.params.id).emit('bid', {
-      bid: result.bid,
-      name: req.user.name,
-    });
-    return res.send('ok');
- 
-  } catch (error) {
-    console.error(error);
-    return next(error);
-  }
+      const item = await Item.find({ where: { id: req.params.id },
+        include: { model: Auction },
+        order: [[{ model:Auction}, 'bid', 'DESC']],
+      });
+      
+      isValidate(item,bid,req);
+     
+      const result = await Auction.create({
+        bid,
+        userId: req.user.id,
+        itemId: req.params.id,
+      });
+      req.app.get('io').to(req.params.id).emit('bid', {
+        bid: result.bid,
+        name: req.user.name,
+      });
+    }).then(function (result) {
+      return res.send('ok');
+  }).catch(function (err) {
+      console.log(err);
+      return next(err);
+  });
 });
 
 // //POST /item/:id/buy - 구매하기
