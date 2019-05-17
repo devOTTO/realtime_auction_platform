@@ -71,7 +71,7 @@ const upload = multer({
 //POST /item --물품 등록
 router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
   try {
-    const { name, price, des, finish } = req.body;
+    const { name, price, des, finish, num, type } = req.body;
     await Item.create({
       sellerId: req.user.id,
       name,
@@ -79,6 +79,8 @@ router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
       finish,
       img: req.file.filename,
       price,
+      num,
+      type,
     });
     res.redirect('/');
   } catch (error) {
@@ -90,6 +92,7 @@ router.post('/item', isLogin, upload.single('img'), async (req, res, next) => {
 //GET /item/:id --입찰 페이지
 router.get('/item/:id', async (req, res, next) => {
   try {
+    
         const item = await Item.find({ where: { id: req.params.id },
           include: {
               model: User,
@@ -100,45 +103,58 @@ router.get('/item/:id', async (req, res, next) => {
             include : {model:User},
             order: [['bid', 'ASC']],
           });
+          if(item.type == 0)
+         { 
         res.render('auction', {
           title: `${item.name} 입찰 참여`,    
           item,
           auction,
           auctionError: req.flash('auctionError'),
-        });
+        });}
+        else{
+          res.render('sell', {
+            title: `${item.name} 구매`,    
+            item,
+            auction,
+            auctionError: req.flash('auctionError'),
+          });
+        }
       } catch (error) {
         console.error(error);
         next(error);
       }
   });
-
+const isValidate = function(item, bid,req){
+   //종료 경매 체크
+  if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
+   return res.status(403).send('종료된 경매입니다.');
+  }
+  //판매가 체크
+  if(item.price > bid){
+     return res.status(403).send('판매가 보다 높게 입찰해야합니다.');
+  }
+  //최고가 보다 높은지? 
+  if(item.auctions[0] && item.auctions[0].bid >= bid){
+    return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+  }
+  //자금 체크
+  if(req.user.money < bid)
+  {
+    return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+  }
+} 
 // //POST /item/:id/bid - 입찰 참여
 router.post('/item/:id/bid', isLogin, async (req, res, next) => {
   try {
-  
     const { bid } = req.body;
 
     const item = await Item.find({ where: { id: req.params.id },
       include: { model: Auction },
       order: [[{ model:Auction}, 'bid', 'DESC']],
     });
-    //종료 경매 체크
-    if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
-      return res.status(403).send('종료된 경매입니다.');
-    }
-    //판매가 체크
-    if(item.price > bid){
-       return res.status(403).send('판매가 보다 높게 입찰해야합니다.');
-    }
-    //최고가 보다 높은지? 
-    if(item.auctions[0] && item.auctions[0].bid >= bid){
-      return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
-    }
-    //자금 체크
-    if(req.user.money < bid)
-    {
-      return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
-    }
+    
+    isValidate(item,bid,req);
+   
     const result = await Auction.create({
       bid,
       userId: req.user.id,
@@ -156,6 +172,49 @@ router.post('/item/:id/bid', isLogin, async (req, res, next) => {
   }
 });
 
+// //POST /item/:id/buy - 구매하기
+router.post('/item/:id/buy', isLogin, async (req, res, next) => {
+  try {
+    const item = await Item.find({ where: { id: req.params.id },
+      include: { model: Auction },
+      order: [[{ model:Auction}, 'bid', 'DESC']],
+    });
+    if(item.num >= 1){
+      const result = await Auction.create({
+        bid: item.price,
+        userId: req.user.id,
+        itemId: req.params.id,
+      });
+      if(req.user.money < item.price)
+      {
+      return res.status(403).send('자금이 부족합니다.');
+      } 
+       try{
+        Item.update({ num: sequelize.literal(`num - 1`), }, { where: { id: item.id } });
+        User.update({
+          money: sequelize.literal(`money - ${result.bid}`),
+        }, {
+          where: { id: result.userId },
+        });
+        User.update({
+          money: sequelize.literal(`money + ${result.bid}`), 
+        },{
+          where: { id: item.sellerId },
+        });
+        }catch (error) {
+          console.error(error);
+        }
+    }else{
+      return res.status(403).send('물건 수량이 부족합니다');
+    }
+    res.redirect('/');
+  } catch (error) {
+    console.error(error);
+    return next(error);
+  }
+});
+
+
 //GET /mypage
 router.get('/mypage',isLogin, async(req,res,next) => {
   try{
@@ -164,7 +223,7 @@ router.get('/mypage',isLogin, async(req,res,next) => {
       include: {model:Auction},
       order: [[{model:Auction}, 'bid', 'DESC']],
     });
-    const buyItems = await Item.findAll({
+    const bidItems = await Item.findAll({
       where:{ buyerId: req.user.id},
       include:{model:Auction},
       order:[[{model:Auction}, 'bid', 'DESC']],
@@ -172,7 +231,7 @@ router.get('/mypage',isLogin, async(req,res,next) => {
     res.render('mypage', {
       title: `${req.user.name} My Page`,        
       sellItems,
-      buyItems,
+      bidItems,
       mypageError: req.flash('mypageError'),
     });
 

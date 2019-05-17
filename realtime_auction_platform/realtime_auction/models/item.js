@@ -15,12 +15,22 @@ module.exports = (sequelize, DataTypes) => (
     price: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
+      defaultValue: 1,
     },
     finish:{
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 1,
+    },
+    num: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+    },
+    type: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
     }
   }, {
     timestamps: true,

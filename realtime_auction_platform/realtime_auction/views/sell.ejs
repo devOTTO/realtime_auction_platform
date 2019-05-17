@@ -20,7 +20,7 @@
 		<!-- Images -->
 
 				<div class="col-lg-5 order-lg-2 order-1">
-					<% if (item.buyerId) { %>
+					<% if (item.num==0) { %>
 						<div class="image_selected"><img src="/images/soldout.png" style="max-width: 80%; height: auto;" alt=""></div>
 					<% }else { %>
 							<div class="image_selected"><img src="/img/<%= item.img %>" style="max-width: 80%; height: auto;" alt=""></div>
@@ -34,29 +34,20 @@
 						<div class="product_seller">판매자 : <%= item.seller.name %></div>
 						<div class="product_text">아이템 설명: <%= item.des %></p></div>
 						<div class="product_text">아이템 수량: <%= item.num %></p></div>
-							<div class="product_start">경매 시작: <%= item.createdAt%></div>
-              <div class="product_time" data-start ="<%= item.createdAt %>" data-finish = "<%= item.finish %>" >남은 시간: <span>00:00:00</span></div>
-               <div class="product_price">Start price: <%= item.price %></div>
-					<div class="order_info d-flex flex-row">
-                <form id='bid_form' method = "post" enctype="multipart/form-data">
-                  <div id = 'child1' class="form-group">
-                   	<label for="StartPrice">입찰가</label>
-                     <input type="number" class="form-control" name='bid' placeholder="입찰가" min = "<%= item.price%>" required>
-                    </div>
-									<div id = 'child2' class="form-group text-center">
-                      <button type="submit" class="btn btn-info">입찰<i class="fa fa-check spaceLeft"></i></button>
-                    </div>
-                 </form>
+						<div class="product_start">경매 시작: <%= item.createdAt%></div>
+                        <div class="product_time" data-start ="<%= item.createdAt %>" data-finish = "<%= item.finish %>" >남은 시간: <span>00:00:00</span></div>
+                        <div class="product_price">Price: <%= item.price %></div>
+					    <div class="order_info d-flex flex-row">
+                            <% if(item.num != 0) {%>
+                        <form id='bid_form' action="/item/<%= item.id%>/buy" method = "post" enctype="multipart/form-data">
+                            <button type="submit" class="btn btn-info">입찰<i class="fa fa-check spaceLeft"></i></button>
+                        </div>
+                        </form>
+                            <% }else{ %>
+                                <div class="product_text">매진</div>
+                           <% }%>
 						</div>
-						<div id="bid">
-								<% auction.forEach(function(bid){ %>
-									<div class="product_text">
-										<span><%= bid.user.name %> :님 </span>
-										<span><%= bid.bid%>원에 입찰하였습니다.</span>
-									</div>
-									<%});%>
-						</div>	
-						</div>
+				</div>
 					</div>
 				</div>
 
@@ -72,39 +63,10 @@
 <script src = "/socket.io/socket.io.js"></script>
 
 <script>
-document.querySelector('#bid_form').addEventListener('submit', function(e){
-	e.preventDefault();
-	var xhr = new XMLHttpRequest();
-	xhr.onload = function() {
-		if(xhr.status===200) {
-			e.target.bid.value = '';
-			errorMessage.textContent='';
-		}else{
-			console.error(xhr.responseText);
-			e.target.bid.value='';
-			errorMessage.textContent = xhr.responseText;
-		}
-	};
-	xhr.open('POST', '/item/<%= item.id%>/bid');
-	xhr.setRequestHeader('Content-Type', 'application/json');
-	xhr.send(JSON.stringify({
-		bid:e.target.bid.value,
-	}));
-});
 
 var socket = io.connect('http://localhost:3000',{ 
 	path: '/socket.io'
 });
-socket.on('bid', function (data) {
-      var div = document.createElement('div');
-      var spanName = document.createElement('span');
-			spanName.textContent = data.name + '님: ';
-      var spanBid = document.createElement('span');
-      spanBid.textContent = data.bid + '원에 입찰하셨습니다.';
-      div.appendChild(spanName);
-      div.appendChild(spanBid);
-      document.querySelector('#bid').appendChild(div);
-		});
 socket.on('timecount', function(count){
 	var time = document.querySelector('.product_time');
 	var finish = new Date(time.dataset.start);
