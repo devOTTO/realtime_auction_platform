@@ -14,7 +14,9 @@
 
 ### Technology (Expect)
 - Git
-- jQuery
 - bootstrap
 - Node.js
-- RDBMS(MySql)
+- Express
+- RDBMS(MySql) + sequelize
+- EJS
+
