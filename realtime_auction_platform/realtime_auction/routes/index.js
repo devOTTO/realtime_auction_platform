@@ -125,7 +125,7 @@ router.get('/item/:id', async (req, res, next) => {
       }
   });
 
-const isValidate = function(item, bid,req){
+const isValidate = (item, bid,req) => {
    //종료 경매 체크
   if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
    return res.status(403).send('종료된 경매입니다.');
