@@ -125,25 +125,34 @@ router.get('/item/:id', async (req, res, next) => {
       }
   });
 
-const isValidate = async (item, bid,req, next) => {
+const isValidate = (item, bid, money) =>
+  new Promise((resolve, reject) => {
+  let flag = true;
    //종료 경매 체크
   if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
-   return res.status(403).send('종료된 경매입니다.');
+    flag = false;
+    reject('종료된 경매입니다.'); 
   }
   //판매가 체크
   if(item.price > bid){
-     return res.status(403).send('판매가 보다 높게 입찰해야합니다.');
+    flag = false;
+    reject('판매가 보다 높게 입찰해야합니다.');
   }
   //최고가 보다 높은지? 
   if(item.auctions[0] && item.auctions[0].bid >= bid){
-    return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+    flag = false;
+    reject('최고가 보다 높게 입찰해야합니다.');
   }
   //자금 체크
-  if(req.user.money < bid)
-  {
-    return res.status(403).send('최고가 보다 높게 입찰해야합니다.');
+  if(money < bid){
+    flag = false;
+    reject('최고가 보다 높게 입찰해야합니다.');
   }
-} 
+
+  if(flag)
+    resolve('success');
+});
+
 // //POST /item/:id/bid - 입찰 참여
 router.post('/item/:id/bid', isLogin, async (req, res, next) => {
     sequelize.transaction(async (t) => {
@@ -152,15 +161,16 @@ router.post('/item/:id/bid', isLogin, async (req, res, next) => {
       const item = await Item.find({ where: { id: req.params.id },
         include: { model: Auction },
         order: [[{ model:Auction}, 'bid', 'DESC']],
-      });
+      }, {transaction: t});
       
-      isValidate(item,bid,req);
+      await isValidate(item,bid,req.user.money);
      
       const result = await Auction.create({
         bid,
         userId: req.user.id,
         itemId: req.params.id,
-      });
+      }, {transaction: t});
+
       req.app.get('io').to(req.params.id).emit('bid', {
         bid: result.bid,
         name: req.user.name,

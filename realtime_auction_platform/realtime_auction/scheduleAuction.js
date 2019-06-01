@@ -16,25 +16,29 @@ const { Item, Auction, User, sequelize } = require('./models');
           where: { itemId: target.id },
           order: [['bid', 'DESC']],
         });
-        if(userId){
+        if(success.userId){
         sequelize.transaction(async (t) => {
           await Promise.all([
-            promise1 = Item.update({ buyerId: success.userId }, { where: { id: target.id } }),
+            Item.update({ 
+              buyerId: success.userId 
+            }, { 
+                where: { id: target.id } 
+            }, {transaction: t}),
             User.update({
               money: sequelize.literal(`money - ${success.bid}`),
             }, {
               where: { id: success.userId },
-            }),
+            }, {transaction: t}),
             User.update({
               money: sequelize.literal(`money + ${success.bid}`), 
             },{
               where: { id: target.sellerId },
-            }),
+            }, {transaction: t}),
         ]).then(function (result) {
             console.log("scheduleAuction Succeed");
         }).catch(function (err) {
             console.log(err);
-            return next(err);
+            //return next(err);
         });
     });
     }}});
