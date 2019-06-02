@@ -125,31 +125,24 @@ router.get('/item/:id', async (req, res, next) => {
       }
   });
 
-const isValidate = (item, bid, money) =>
+const checkValidate = (item, bid, money) =>
   new Promise((resolve, reject) => {
-  let flag = true;
    //종료 경매 체크
   if(new Date(item.createdAt).valueOf() + (item.finish*60*1000) < new Date()){
-    flag = false;
     reject('종료된 경매입니다.'); 
   }
   //판매가 체크
   if(item.price > bid){
-    flag = false;
     reject('판매가 보다 높게 입찰해야합니다.');
   }
   //최고가 보다 높은지? 
   if(item.auctions[0] && item.auctions[0].bid >= bid){
-    flag = false;
     reject('최고가 보다 높게 입찰해야합니다.');
   }
   //자금 체크
   if(money < bid){
-    flag = false;
     reject('최고가 보다 높게 입찰해야합니다.');
   }
-
-  if(flag)
     resolve('success');
 });
 
@@ -163,8 +156,8 @@ router.post('/item/:id/bid', isLogin, async (req, res, next) => {
         order: [[{ model:Auction}, 'bid', 'DESC']],
       }, {transaction: t});
       
-      await isValidate(item,bid,req.user.money);
-     
+      await checkValidate(item,bid,req.user.money);
+      
       const result = await Auction.create({
         bid,
         userId: req.user.id,
